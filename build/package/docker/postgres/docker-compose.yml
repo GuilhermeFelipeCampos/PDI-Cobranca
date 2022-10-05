@@ -1,0 +1,11 @@
+version: "3.9"
+
+services:
+  projeto-pdi-cobranca:
+    image: pdi-cobranca
+    container_name: pdi-cobranca
+    ports:
+      - 5432:5432
+    build: 
+      context: .
+      dockerfile: Dockerfile
