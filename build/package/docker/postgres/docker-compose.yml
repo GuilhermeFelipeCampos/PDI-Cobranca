@@ -8,4 +8,7 @@ services:
       - 5432:5432
     build: 
       context: .
+      args:
+       - DB_SQL=./db/squema_db.sql
+       - TABLE_SQL=./db/squema_tables.sql
       dockerfile: Dockerfile

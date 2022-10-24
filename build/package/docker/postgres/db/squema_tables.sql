@@ -24,7 +24,7 @@ CREATE TABLE charges (
   id uuid DEFAULT(public.uuid_generate_v4()),
   client_id uuid not null, 
   description text not null,
-  due_date date not null,
-  ammount varchar(15) not null,
+  due_date timestamp not null,
+  value float not null,
   status status_charge not null
 );
