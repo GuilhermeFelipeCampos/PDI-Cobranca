@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -48,11 +49,12 @@ func GetById(c echo.Context) error {
 
 func Create(c echo.Context) error {
 	type body struct {
-		Name string `json:"product_name" validate:"required,min=4"`
+		Name string `json:"product_name" validate:"required"`
 	}
 	var reqBody body
 	e.Validator = &ProductValidator{validator: v}
 	if err := c.Bind(&reqBody); err != nil {
+		fmt.Println(reqBody)
 		return err
 	}
 	if err := c.Validate(reqBody); err != nil {

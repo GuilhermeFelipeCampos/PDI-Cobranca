@@ -1,6 +1,6 @@
 package model
 
-type users struct {
+type Users struct {
 	name    string
 	email   string
 	keyword string

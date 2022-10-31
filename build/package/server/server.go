@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	e   = echo.New()
+	E   = echo.New()
 	cfg = configs.ConfigsApp{}
 )
 
@@ -17,11 +17,11 @@ func init() {
 	err := cleanenv.ReadEnv(&cfg)
 	fmt.Printf("%+v", cfg)
 	if err != nil {
-		e.Logger.Fatal("Unable to load configuration")
+		E.Logger.Fatal("Unable to load configuration")
 	}
 }
 func StartServer() {
 
-	e.Logger.Print(fmt.Sprintf("Listening on port %s....", cfg.Port))
-	e.Logger.Fatal(e.Start(fmt.Sprintf("localhost:%s", cfg.Port)))
+	E.Logger.Print(fmt.Sprintf("Listening on port %s....", cfg.Port))
+	E.Logger.Fatal(E.Start(fmt.Sprintf("localhost:%s", cfg.Port)))
 }
