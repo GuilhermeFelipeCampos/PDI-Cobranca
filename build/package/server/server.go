@@ -1,22 +1,27 @@
 package server
 
 import (
-	"net/http"
+	"PDI-COBRANCA/build/package/configs"
+	"fmt"
 
+	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/labstack/echo/v4"
 )
 
-type Server struct {
-	server *echo.Echo
-}
+var (
+	e   = echo.New()
+	cfg = configs.ConfigsApp{}
+)
 
-func StartServer() *Server {
-	e := echo.New()
-	e.GET("/test", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Hello, World!")
-	})
-	e.Logger.Fatal(e.Start(":8080"))
-	return &Server{
-		server: e,
+func init() {
+	err := cleanenv.ReadEnv(&cfg)
+	fmt.Printf("%+v", cfg)
+	if err != nil {
+		e.Logger.Fatal("Unable to load configuration")
 	}
+}
+func StartServer() {
+
+	e.Logger.Print(fmt.Sprintf("Listening on port %s....", cfg.Port))
+	e.Logger.Fatal(e.Start(fmt.Sprintf("localhost:%s", cfg.Port)))
 }

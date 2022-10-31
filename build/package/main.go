@@ -1,17 +1,24 @@
 package main
 
 import (
-	"net/http"
+	"PDI-COBRANCA/build/package/handlers"
+	"PDI-COBRANCA/build/package/server"
 
 	"github.com/labstack/echo/v4"
 )
 
 func main() {
+	server.StartServer()
 	e := echo.New()
-	e.GET("/", func(c echo.Context) error {
-		return c.String(http.StatusOK, "Testando página com echo")
-	})
-	e.Logger.Print("Listening on port 8081....")
-	e.Logger.Fatal(e.Start(":8081"))
+	//find all
+	e.GET("/products", handlers.GetAll)
+	//find by id
+	e.GET("/products/:id", handlers.GetById)
+	// record products
+	e.POST("/products", handlers.Create)
+	// update product
+	e.PUT("/products/:id", handlers.Update)
+	//delete by id
+	e.DELETE("/products/:id", handlers.Delete)
 
 }
