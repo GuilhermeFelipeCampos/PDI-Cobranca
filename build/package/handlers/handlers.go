@@ -1,13 +1,25 @@
 package handlers
 
 import (
+	"PDI-COBRANCA/build/package/model"
+	"PDI-COBRANCA/build/package/repository"
+	"PDI-COBRANCA/build/package/server"
 	"fmt"
+
 	"net/http"
 	"strconv"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
 )
+
+type HandlerInterface interface {
+	GetAll(c echo.Context) error
+	GetById(c echo.Context) error
+	Create(c echo.Context) error
+	Update(c echo.Context) error
+	Delete(c echo.Context) error
+}
 
 type ProductValidator struct {
 	validator *validator.Validate
@@ -19,52 +31,64 @@ func (p *ProductValidator) Validate(i interface{}) error {
 
 var (
 	products = []map[int]string{{1: "moblies"}, {2: "tvs"}, {3: "laptops"}}
-	e        = echo.New()
-	v        = validator.New()
+
+	v = validator.New()
 )
 
 func GetAll(c echo.Context) error {
-	return c.JSON(http.StatusOK, products)
+	resp, err := repository.GetUsers()
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, "Error")
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
-func GetById(c echo.Context) error {
-	var product map[int]string
-	pID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
+func GetByEmail(c echo.Context) error {
+	type emailRequest struct {
+		Email string `query:"email" validate:"required,email"`
+	}
+	var uEmail emailRequest
+	server.E.Validator = &ProductValidator{validator: v}
+	if err := c.Bind(&uEmail); err != nil {
 		return err
 	}
-	for _, p := range products {
-		for k := range p {
-
-			if pID == k {
-				product = p
-			}
-		}
+	if err := c.Validate(uEmail); err != nil {
+		return c.JSON(http.StatusBadRequest, "Error in request")
 	}
-	if product == nil {
-		return c.JSON(http.StatusNotFound, "product not found")
+	email := fmt.Sprintf("%v", uEmail)
+	resp, err := repository.GetUserByEmail(email)
+	if err != nil {
+		return c.JSON(http.StatusExpectationFailed, "Erro na requisição com o banco de dados")
 	}
-	return c.JSON(http.StatusOK, product)
+	return c.JSON(http.StatusOK, resp)
 }
 
 func Create(c echo.Context) error {
 	type body struct {
-		Name string `json:"product_name" validate:"required"`
+		Name    string `json:"name" validate:"required"`
+		Email   string `json:"email" validate:"required"`
+		Keyword string `json:"keyword" validate:"required"`
 	}
 	var reqBody body
-	e.Validator = &ProductValidator{validator: v}
+
+	server.E.Validator = &ProductValidator{validator: v}
 	if err := c.Bind(&reqBody); err != nil {
-		fmt.Println(reqBody)
 		return err
 	}
 	if err := c.Validate(reqBody); err != nil {
 		return c.JSON(http.StatusBadRequest, "Error in request")
 	}
-	product := map[int]string{
-		len(products) + 1: reqBody.Name,
+	users := model.Users{
+		Name:    reqBody.Name,
+		Email:   reqBody.Email,
+		Keyword: reqBody.Keyword,
 	}
-	products = append(products, product)
-	return c.JSON(http.StatusOK, product)
+
+	resp, err := repository.InsertUsers(users)
+	if err != nil {
+		return c.JSON(http.StatusExpectationFailed, "Erro na requisição com o banco de dados")
+	}
+	return c.JSON(http.StatusCreated, resp)
 }
 
 func Update(c echo.Context) error {
@@ -87,7 +111,7 @@ func Update(c echo.Context) error {
 		Name string `json:"product_name" validate:"required,min=4"`
 	}
 	var reqBody body
-	e.Validator = &ProductValidator{validator: v}
+	server.E.Validator = &ProductValidator{validator: v}
 	if err := c.Bind(&reqBody); err != nil {
 		return err
 	}

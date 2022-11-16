@@ -2,19 +2,17 @@ package repository
 
 import (
 	"PDI-COBRANCA/build/package/database"
+	"PDI-COBRANCA/build/package/model"
+	"fmt"
 )
 
-type users struct {
-	name    string
-	email   string
-	keyword string
+type RepositoryInterface interface {
+	InsertUsers(u model.Users) (msg, err error)
+	GetUsers() (us []model.Users, err error)
 }
 
-func InsertUsers(u users) (msg, err error) {
+func InsertUsers(u model.Users) (msg, err error) {
 
-	u.name = "Guilherme"
-	u.email = "gui@email.com"
-	u.keyword = "12345"
 	conn, err := database.OpenConn()
 
 	if err != nil {
@@ -22,9 +20,68 @@ func InsertUsers(u users) (msg, err error) {
 	}
 	defer conn.Close()
 
-	sql := `INSERT INTO users(name,email,keyword) VALUES ($1) RETURNING users;`
+	sql := `INSERT INTO users(name,email,keyword) VALUES ($1,$2,$3) RETURNING users;`
 
-	err = conn.QueryRow(sql, u).Scan(msg)
+	err = conn.QueryRow(sql, u.Name, u.Email, u.Keyword).Scan(msg)
 
 	return err, msg
+}
+
+func GetUsers() (us []model.Users, err error) {
+
+	conn, err := database.OpenConn()
+
+	if err != nil {
+		return
+	}
+
+	sql := `SELECT * FROM users;`
+
+	rows, err := conn.Query(sql)
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var u model.Users
+		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
+		if err != nil {
+			continue
+		}
+
+		us = append(us, u)
+	}
+	fmt.Println(us)
+	return us, err
+}
+
+func GetUserByEmail(email string) (user []model.Users, err error) {
+
+	conn, err := database.OpenConn()
+
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	sql := `SELECT * FROM users WHERE email=$1;`
+
+	rows, err := conn.Query(sql, email)
+	if err != nil {
+		return
+	}
+
+	fmt.Println(rows)
+	for rows.Next() {
+		var u model.Users
+		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
+		if err != nil {
+			continue
+		}
+		fmt.Println(u)
+		user = append(user, u)
+
+	}
+	return user, nil
 }

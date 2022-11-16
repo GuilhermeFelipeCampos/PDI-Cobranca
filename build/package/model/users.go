@@ -1,7 +1,8 @@
 package model
 
 type Users struct {
-	name    string
-	email   string
-	keyword string
+	Id      string
+	Name    string
+	Email   string
+	Keyword string
 }
