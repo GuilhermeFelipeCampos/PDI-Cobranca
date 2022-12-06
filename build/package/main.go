@@ -10,15 +10,15 @@ import (
 func main() {
 
 	//find all
-	server.E.GET("/products", handlers.GetAll)
+	server.E.GET("/users", handlers.GetAll)
 	//find by email
-	server.E.GET("/product", handlers.GetByEmail)
+	server.E.GET("/user", handlers.GetByEmail)
 	// record products
-	server.E.POST("/products", handlers.Create)
+	server.E.POST("/user", handlers.Create)
 	// update product
-	server.E.PUT("/products/:id", handlers.Update)
+	server.E.PUT("/user/:id", handlers.Update)
 	//delete by id
-	server.E.DELETE("/products/:id", handlers.Delete)
+	server.E.DELETE("/user/:id", handlers.Delete)
 
 	server.StartServer()
 
