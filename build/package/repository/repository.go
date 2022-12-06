@@ -34,6 +34,7 @@ func GetUsers() (us []model.Users, err error) {
 	if err != nil {
 		return
 	}
+	defer conn.Close()
 
 	sql := `SELECT * FROM users;`
 
@@ -56,32 +57,30 @@ func GetUsers() (us []model.Users, err error) {
 	return us, err
 }
 
-func GetUserByEmail(email string) (user []model.Users, err error) {
+func GetUserByEmail(email string) (us []model.Users, err error) {
 
 	conn, err := database.OpenConn()
 
+	fmt.Println("repositório: " + email)
 	if err != nil {
 		return
 	}
 	defer conn.Close()
 
-	sql := `SELECT * FROM users WHERE email=$1;`
+	//sql := `SELECT * FROM users WHERE email=$1`
 
-	rows, err := conn.Query(sql, email)
-	if err != nil {
-		return
-	}
-
-	fmt.Println(rows)
+	rows, err := conn.Query(`SELECT * FROM users WHERE email=$1`, email)
 	for rows.Next() {
 		var u model.Users
 		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
 		if err != nil {
 			continue
 		}
-		fmt.Println(u)
-		user = append(user, u)
 
+		us = append(us, u)
 	}
-	return user, nil
+
+	fmt.Println(email)
+	return us, nil
+
 }
