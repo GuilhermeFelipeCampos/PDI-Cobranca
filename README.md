@@ -2,7 +2,7 @@
 
 # - criar database local com docker
 
-docker-compose -f build/package/docker/postgres/ docker-compose up
+docker-compose -f build/package/docker/postgres/docker-compose.yml up
 
 # - Framework web utilizado
 

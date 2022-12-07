@@ -4,6 +4,7 @@ import (
 	"PDI-COBRANCA/build/package/database"
 	"PDI-COBRANCA/build/package/model"
 	"fmt"
+	"strings"
 )
 
 type RepositoryInterface interface {
@@ -58,10 +59,10 @@ func GetUsers() (us []model.Users, err error) {
 }
 
 func GetUserByEmail(email string) (us []model.Users, err error) {
-
+	formatedEmail := strings.ReplaceAll(email, "{", "")
+	formatedEmail = strings.ReplaceAll(formatedEmail, "}", "")
 	conn, err := database.OpenConn()
 
-	fmt.Println("repositório: " + email)
 	if err != nil {
 		return
 	}
@@ -69,7 +70,7 @@ func GetUserByEmail(email string) (us []model.Users, err error) {
 
 	//sql := `SELECT * FROM users WHERE email=$1`
 
-	rows, err := conn.Query(`SELECT * FROM users WHERE email=$1`, email)
+	rows, err := conn.Query(`SELECT * FROM users WHERE email=$1`, formatedEmail)
 	for rows.Next() {
 		var u model.Users
 		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
@@ -80,7 +81,6 @@ func GetUserByEmail(email string) (us []model.Users, err error) {
 		us = append(us, u)
 	}
 
-	fmt.Println(email)
 	return us, nil
 
 }

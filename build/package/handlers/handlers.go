@@ -56,7 +56,6 @@ func GetByEmail(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, "Error in request")
 	}
 	email := fmt.Sprintf("%v", uEmail)
-	fmt.Println("handler: " + email)
 	resp, err := repository.GetUserByEmail(email)
 	if err != nil {
 		return c.JSON(http.StatusExpectationFailed, "Erro na requisição com o banco de dados")

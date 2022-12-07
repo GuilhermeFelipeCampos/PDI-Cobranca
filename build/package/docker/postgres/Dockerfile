@@ -4,8 +4,8 @@ ENV POSTGRES_USER=postgres
 ENV POSTGRES_PASSWORD=admin
 ENV POSTGRES_DB=pdi_cobranca_db
 
-ARG $DB_SQL=db/squema_db.sql
-ARG $TABLE_SQL=db/squema_tables.sql
+ARG $DB_SQL=build/package/docker/postgres/db/squema_db.sql
+ARG $TABLE_SQL=build/package/docker/postgres/db/squema_tables.sql
 
 EXPOSE 5432:5432
 COPY $DB_SQL /docker-entrypoint-initdb.d/
