@@ -8,7 +8,7 @@ import (
 )
 
 func main() {
-
+	//pudim := handlers.NewHandler(5)
 	//find all
 	server.E.GET("/users", handlers.GetAll)
 	//find by email

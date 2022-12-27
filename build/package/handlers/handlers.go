@@ -7,7 +7,6 @@ import (
 	"fmt"
 
 	"net/http"
-	"strconv"
 
 	"github.com/go-playground/validator"
 	"github.com/labstack/echo/v4"
@@ -21,17 +20,15 @@ type HandlerInterface interface {
 	Delete(c echo.Context) error
 }
 
-type ProductValidator struct {
+type UserValidator struct {
 	validator *validator.Validate
 }
 
-func (p *ProductValidator) Validate(i interface{}) error {
+func (p *UserValidator) Validate(i interface{}) error {
 	return p.validator.Struct(i)
 }
 
 var (
-	products = []map[int]string{{1: "moblies"}, {2: "tvs"}, {3: "laptops"}}
-
 	v = validator.New()
 )
 
@@ -48,7 +45,7 @@ func GetByEmail(c echo.Context) error {
 		Email string `query:"email" validate:"required,email"`
 	}
 	var uEmail emailRequest
-	server.E.Validator = &ProductValidator{validator: v}
+	server.E.Validator = &UserValidator{validator: v}
 	if err := c.Bind(&uEmail); err != nil {
 		return err
 	}
@@ -71,7 +68,7 @@ func Create(c echo.Context) error {
 	}
 	var reqBody body
 
-	server.E.Validator = &ProductValidator{validator: v}
+	server.E.Validator = &UserValidator{validator: v}
 	if err := c.Bind(&reqBody); err != nil {
 		return err
 	}
@@ -92,58 +89,40 @@ func Create(c echo.Context) error {
 }
 
 func Update(c echo.Context) error {
-	var product map[int]string
-	pID, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return err
-	}
-	for _, p := range products {
-		for k := range p {
-			if pID == k {
-				product = p
-			}
-		}
-	}
-	if product == nil {
-		return c.JSON(http.StatusNotFound, "product not found")
-	}
+	userID := c.Param("id")
+
 	type body struct {
-		Name string `json:"product_name" validate:"required,min=4"`
+		Name    string `json:"name" validate:"required"`
+		Email   string `json:"email" validate:"required"`
+		Keyword string `json:"keyword" validate:"required"`
 	}
 	var reqBody body
-	server.E.Validator = &ProductValidator{validator: v}
+
+	server.E.Validator = &UserValidator{validator: v}
 	if err := c.Bind(&reqBody); err != nil {
 		return err
 	}
 	if err := c.Validate(reqBody); err != nil {
 		return c.JSON(http.StatusBadRequest, "Error in request")
 	}
-	product[pID] = reqBody.Name
-	return c.JSON(http.StatusOK, product)
+	users := model.Users{
+		Id:      userID,
+		Name:    reqBody.Name,
+		Email:   reqBody.Email,
+		Keyword: reqBody.Keyword,
+	}
+	resp, err := repository.UpdateUser(users)
+	if err != nil {
+		return c.JSON(http.StatusExpectationFailed, "Erro na requisição com o banco de dados")
+	}
+	return c.JSON(http.StatusOK, resp)
 }
 
 func Delete(c echo.Context) error {
-	var product map[int]string
-	var index int
-	pID, err := strconv.Atoi(c.Param("id"))
+	userID := c.Param("id")
+	resp, err := repository.DeleteUser(userID)
 	if err != nil {
-		return err
+		return c.JSON(http.StatusExpectationFailed, "Erro na requisição com o banco de dados")
 	}
-	for i, p := range products {
-		for k := range p {
-
-			if pID == k {
-				product = p
-				index = i
-			}
-		}
-	}
-	if product == nil {
-		return c.JSON(http.StatusNotFound, "product not found")
-	}
-	splice := func(s []map[int]string, index int) []map[int]string {
-		return append(s[:index], s[index+1:]...)
-	}
-	products = splice(products, index)
-	return c.JSON(http.StatusOK, product)
+	return c.JSON(http.StatusOK, resp)
 }

@@ -67,10 +67,8 @@ func GetUserByEmail(email string) (us []model.Users, err error) {
 		return
 	}
 	defer conn.Close()
-
-	//sql := `SELECT * FROM users WHERE email=$1`
-
-	rows, err := conn.Query(`SELECT * FROM users WHERE email=$1`, formatedEmail)
+	sql := `SELECT * FROM users WHERE email=$1`
+	rows, err := conn.Query(sql, formatedEmail)
 	for rows.Next() {
 		var u model.Users
 		err := rows.Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
@@ -83,4 +81,36 @@ func GetUserByEmail(email string) (us []model.Users, err error) {
 
 	return us, nil
 
+}
+
+// Alterar função para que receba um id e altere os campos referente ao id
+func UpdateUser(user model.Users) (u model.Users, err error) {
+	conn, err := database.OpenConn()
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	sql := `UPDATE users SET name=$1,email=$2,Keyword=$3 WHERE id=$4 RETURNING id, name, email, keyword`
+	err = conn.QueryRow(sql, user.Name, user.Email, user.Keyword, user.Id).Scan(&u.Id, &u.Name, &u.Email, &u.Keyword)
+
+	if err != nil {
+		panic(err)
+	}
+
+	return u, nil
+}
+
+func DeleteUser(id string) (userId string, err error) {
+	conn, err := database.OpenConn()
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+	sql := `DELETE FROM users WHERE id=$1`
+	err = conn.QueryRow(sql, id).Scan(&userId)
+	if err != nil {
+		panic(err)
+	}
+
+	return userId, nil
 }
